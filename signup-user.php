@@ -40,7 +40,13 @@
                     }
                     ?>
                     <div class="form-group">
-                        <input class="form-control inp" type="text" name="name" placeholder="Full Name" required value="<?php echo $name ?>">
+                        <input class="form-control inp" type="text" name="firstname" placeholder="First Name" required value="<?php echo $firstname ?>">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control inp" type="text" name="lastname" placeholder="Last Name" required value="<?php echo $lastname ?>">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control inp" type="number" name="mobile" placeholder="Phone Number" required maxlength="11">
                     </div>
                     <div class="form-group">
                         <input class="form-control inp" type="email" name="email" placeholder="Email Address" required value="<?php echo $email ?>">

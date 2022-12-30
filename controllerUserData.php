@@ -2,44 +2,47 @@
 session_start();
 require "connection.php";
 $email = "";
-$name = "";
+$firstname = "";
+$lastname = "";
 $errors = array();
 
 //if user signup button is clicked
 if(isset($_POST['signup'])){
-    $name = mysqli_real_escape_string($con, $_POST['name']);
+    $firstname = mysqli_real_escape_string($con, $_POST['firstname']);
+    $lastname = mysqli_real_escape_string($con, $_POST['lastname']);
+    $mobile = mysqli_real_escape_string($con, $_POST['mobile']);
     $email = mysqli_real_escape_string($con, $_POST['email']);
     $password = mysqli_real_escape_string($con, $_POST['password']);
     $cpassword = mysqli_real_escape_string($con, $_POST['cpassword']);
     if($password !== $cpassword){
         $errors['password'] = "Confirm password not matched!";
     }
-    $email_check = "SELECT * FROM members WHERE email = '$email'";
+    $email_check = "SELECT * FROM users WHERE email = '$email'";
     $res = mysqli_query($con, $email_check);
     if(mysqli_num_rows($res) > 0){
-        $errors['email'] = "Email that you have entered is already exist!";
+        $errors['email'] = "Email that you have entered already exist!";
     }
     if(count($errors) === 0){
-        $encpass = password_hash($password, PASSWORD_BCRYPT);
-        $code = rand(999999, 111111, 7777777);
+        // $encpass = password_hash($password, PASSWORD_DEFAULT);
+        $code = rand(999999, 111111);
         $status = "notverified";
-        $insert_data = "INSERT INTO members (name, email, password, code, status)
-                        values('$name', '$email', '$encpass', '$code', '$status')";
+        $insert_data = "INSERT INTO users (firstname, lastname, email, password, mobile, code, status)
+                        values('$firstname', '$lastname','$email', '$password', '$mobile', '$code', '$status')";
         $data_check = mysqli_query($con, $insert_data);
         if($data_check){
-            $subject = "Email Verification Code";
-            $message = "Your verification code is $code";
-            $sender = "From: Nelson";
-            if(mail($email, $subject, $message, $sender)){
-                $info = "We've sent a verification code to your email - $email";
+        //     $subject = "Email Verification Code";
+        //     $message = "Your verification code is $code";
+        //     $sender = "From: Nelson";
+        //     if(mail($email, $subject, $message, $sender)){
+                $info = "We've sent a verification code to your email - {$email} -- {$code}";
                 $_SESSION['info'] = $info;
                 $_SESSION['email'] = $email;
                 $_SESSION['password'] = $password;
                 header('location: user-otp.php');
                 exit();
-            }else{
-                $errors['otp-error'] = "Failed while sending code!";
-            }
+            // }else{
+            //     $errors['otp-error'] = "Failed while sending code!";
+            // }
         }else{
             $errors['db-error'] = "Failed while inserting data into database!";
         }
@@ -50,7 +53,7 @@ if(isset($_POST['signup'])){
     if(isset($_POST['check'])){
         $_SESSION['info'] = "";
         $otp_code = mysqli_real_escape_string($con, $_POST['otp']);
-        $check_code = "SELECT * FROM members WHERE code = $otp_code";
+        $check_code = "SELECT * FROM users WHERE code = $otp_code";
         $code_res = mysqli_query($con, $check_code);
         if(mysqli_num_rows($code_res) > 0){
             $fetch_data = mysqli_fetch_assoc($code_res);
@@ -58,10 +61,10 @@ if(isset($_POST['signup'])){
             $email = $fetch_data['email'];
             $code = 0;
             $status = 'verified';
-            $update_otp = "UPDATE members SET code = $code, status = '$status' WHERE code = $fetch_code";
+            $update_otp = "UPDATE users SET code = $code, status = '$status' WHERE code = $fetch_code";
             $update_res = mysqli_query($con, $update_otp);
             if($update_res){
-                $_SESSION['name'] = $name;
+                $_SESSION['firstname'] = $firstname;
                 $_SESSION['email'] = $email;
                 header('location: home.php');
                 exit();
@@ -77,12 +80,16 @@ if(isset($_POST['signup'])){
     if(isset($_POST['login'])){
         $email = mysqli_real_escape_string($con, $_POST['email']);
         $password = mysqli_real_escape_string($con, $_POST['password']);
-        $check_email = "SELECT * FROM members WHERE email = '$email'";
+        // $encrypted = password_hash($password, PASSWORD_DEFAULT);
+        $check_email = "SELECT * FROM users WHERE email = '$email'";
         $res = mysqli_query($con, $check_email);
+      
         if(mysqli_num_rows($res) > 0){
             $fetch = mysqli_fetch_assoc($res);
             $fetch_pass = $fetch['password'];
-            if(password_verify($password, $fetch_pass)){
+            // print_r($fetch_pass."  ------  ".$encrypted);
+            // exit;
+            if($password == $fetch_pass){
                 $_SESSION['email'] = $email;
                 $status = $fetch['status'];
                 if($status == 'verified'){
@@ -105,25 +112,25 @@ if(isset($_POST['signup'])){
     //if user click continue button in forgot password form
     if(isset($_POST['check-email'])){
         $email = mysqli_real_escape_string($con, $_POST['email']);
-        $check_email = "SELECT * FROM members WHERE email='$email'";
+        $check_email = "SELECT * FROM users WHERE email='$email'";
         $run_sql = mysqli_query($con, $check_email);
         if(mysqli_num_rows($run_sql) > 0){
-            $code = rand(999999, 111111, 7777777);
-            $insert_code = "UPDATE members SET code = $code WHERE email = '$email'";
+            $code = rand(999999, 111111);
+            $insert_code = "UPDATE users SET code = $code WHERE email = '$email'";
             $run_query =  mysqli_query($con, $insert_code);
             if($run_query){
-                $subject = "Password Reset Code";
-                $message = "Your password reset code is $code";
-                $sender = "From: Nelson";
-                if(mail($email, $subject, $message, $sender)){
-                    $info = "We've sent a passwrod reset otp to your email - $email";
+                // $subject = "Password Reset Code";
+                // $message = "Your password reset code is $code";
+                // $sender = "From: Nelson";
+                // if(mail($email, $subject, $message, $sender)){
+                    $info = "We've sent a passwrod reset otp to your email - {$email} -- {$code}";
                     $_SESSION['info'] = $info;
                     $_SESSION['email'] = $email;
                     header('location: reset-code.php');
                     exit();
-                }else{
-                    $errors['otp-error'] = "Failed while sending code!";
-                }
+                // }else{
+                //     $errors['otp-error'] = "Failed while sending code!";
+                // }
             }else{
                 $errors['db-error'] = "Something went wrong!";
             }
@@ -136,7 +143,7 @@ if(isset($_POST['signup'])){
     if(isset($_POST['check-reset-otp'])){
         $_SESSION['info'] = "";
         $otp_code = mysqli_real_escape_string($con, $_POST['otp']);
-        $check_code = "SELECT * FROM members WHERE code = $otp_code";
+        $check_code = "SELECT * FROM users WHERE code = $otp_code";
         $code_res = mysqli_query($con, $check_code);
         if(mysqli_num_rows($code_res) > 0){
             $fetch_data = mysqli_fetch_assoc($code_res);
@@ -162,7 +169,7 @@ if(isset($_POST['signup'])){
             $code = 0;
             $email = $_SESSION['email']; //getting this email using session
             $encpass = password_hash($password, PASSWORD_BCRYPT);
-            $update_pass = "UPDATE members SET code = $code, password = '$encpass' WHERE email = '$email'";
+            $update_pass = "UPDATE users SET code = $code, password = '$password' WHERE email = '$email'";
             $run_query = mysqli_query($con, $update_pass);
             if($run_query){
                 $info = "Your password changed. Now you can login with your new password.";

@@ -3,7 +3,7 @@
 $email = $_SESSION['email'];
 $password = $_SESSION['password'];
 if($email != false && $password != false){
-    $sql = "SELECT * FROM members WHERE email = '$email'";
+    $sql = "SELECT * FROM users WHERE email = '$email'";
     $run_Sql = mysqli_query($con, $sql);
     if($run_Sql){
         $fetch_info = mysqli_fetch_assoc($run_Sql);
@@ -25,7 +25,7 @@ if($email != false && $password != false){
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?php echo $fetch_info['name'] ?> | Home</title>
+    <title><?php echo $fetch_info['firstname'] ?> | Home</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
     @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
@@ -64,7 +64,7 @@ if($email != false && $password != false){
     <a class="navbar-brand" href="#">Brand name</a>
     <button type="button" class="btn btn-light"><a href="logout-user.php">Logout</a></button>
     </nav>
-    <h1>Welcome <?php echo $fetch_info['name'] ?></h1>
+    <h1>Welcome <?php echo $fetch_info['firstname'] ?></h1>
     
 </body>
 </html>
